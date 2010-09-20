@@ -2,7 +2,7 @@ SandboxJS
 =========
 ### JavaScript "Sandboxes" for the web browser.
 
-This script offers a very simple interface for JavaScript "Sandboxes".
+This script offers a very simple interface for JavaScript ["Sandboxes"][WikipediaSandboxes].
 Underneath, it uses the [magic power of `iframe`s][DeanEdwards] to create
 new execution scopes for JavaScript to be evaluated inside of.
 
@@ -54,3 +54,4 @@ In other words, this function will ONLY work with files from the SAME DOMAIN.
 
 [DeanEdwards]: http://dean.edwards.name/weblog/2006/11/sandbox/
 [SameOriginPolicy]: http://en.wikipedia.org/wiki/Same_origin_policy
+[WikipediaSandbox]: http://en.wikipedia.org/wiki/Sandbox_%28computer_security%29
