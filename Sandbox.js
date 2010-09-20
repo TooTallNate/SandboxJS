@@ -8,11 +8,11 @@ window['Sandbox'] = (function(window, document, undefined) {
   
   function Sandbox(bare) {
 
-    if (bare === false) {
-      throw new Error("NOT YET IMPLEMENTED: Make a GitHub Issue if you need this...");
-    }
-    bare = bare || true;
-
+    // The 'bare' parameter determines whether or not the sandbox scope should
+    // be attempted to be cleared out of any extra browser/DOM objects and functions.
+    // `true` attempts to make the sandbox as close to a 'bare' JavaScript
+    // environment as possible, and `false` leaves things like 'alert' available.
+    bare = bare !== false ? true : false;
     this['bare'] = bare;
 
     // Append to document so that 'contentWindow' is accessible
@@ -46,7 +46,7 @@ window['Sandbox'] = (function(window, document, undefined) {
     this['load'] = function(filename, callback) {
       var str = "_s = document.createElement('script'); "+
         "_s.setAttribute('type','text/javascript'); "+
-        "_s.setAttribute('src','"+filename.replace(/'/g, '\\\'')+"'); ";
+        "_s.setAttribute('src','"+filename.replace(/'/g, "\\'")+"'); ";
       if (callback) {
         function cb() {
           callback();
@@ -63,55 +63,56 @@ window['Sandbox'] = (function(window, document, undefined) {
       throw new Error("NOT YET IMPLEMENTED: Make a GitHub Issue if you need this...");
     }
 
-
-    // The scope that an iframe creates for us is polluted with a bunch of
-    // DOM and window properties. We need to try our best to remove access to
-    // as much of the default 'window' as possible, and provide the scope with
-    // as close to a 'bare' JS environment as possible. Especially 'parent'
-    // needs to be restricted, which provides access to the page's global
-    // scope (very bad!).
-    if (supportsProto === true) {
-      windowInstance['__proto__'] = Object.prototype;
-    } else if (supportsProto === false) {
-      obliterateConstructor.call(this, windowInstance);
-    } else {
-      function fail() {
-        //console.log("browser DOES NOT support '__proto__'");
-        supportsProto = false;
+    if (bare) {
+      // The scope that an iframe creates for us is polluted with a bunch of
+      // DOM and window properties. We need to try our best to remove access to
+      // as much of the default 'window' as possible, and provide the scope with
+      // as close to a 'bare' JS environment as possible. Especially 'parent'
+      // needs to be restricted, which provides access to the page's global
+      // scope (very bad!).
+      if (supportsProto === true) {
+        windowInstance['__proto__'] = Object.prototype;
+      } else if (supportsProto === false) {
         obliterateConstructor.call(this, windowInstance);
+      } else {
+        function fail() {
+          //console.log("browser DOES NOT support '__proto__'");
+          supportsProto = false;
+          obliterateConstructor.call(this, windowInstance);
+        }
+        try {
+          // We're gonna test if the browser supports the '__proto__' property
+          // on the Window object. If it does, then it makes cleaning up any
+          // properties inherited from the 'prototype' a lot easier.
+          if (windowInstance['__proto__']) {
+            var proto = windowInstance['__proto__'];
+            proto['_$'] = true;
+            if (windowInstance['_$'] !== true) {
+              fail();
+            }
+            windowInstance['__proto__'] = Object.prototype;
+            if (!!windowInstance['_$']) {
+              // If we set '__proto__', but '_$' still exists, then setting that
+              // property is not supported on the 'Window' at least, resort to obliteration.
+              delete proto['_$'];
+              windowInstance['__proto__'] = proto;
+              fail();
+            }
+            // If we got to here without any errors being thrown, and without "fail()"
+            // being called, then it seems as though the browser supports __proto__!
+            if (supportsProto !== false) {
+              //console.log("browser supports '__proto__'!!");
+              supportsProto = true;
+            }
+          }
+        } catch(e) {
+          fail();
+        }        
       }
       try {
-        // We're gonna test if the browser supports the '__proto__' property
-        // on the Window object. If it does, then it makes cleaning up any
-        // properties inherited from the 'prototype' a lot easier.
-        if (windowInstance['__proto__']) {
-          var proto = windowInstance['__proto__'];
-          proto['_$'] = true;
-          if (windowInstance['_$'] !== true) {
-            fail();
-          }
-          windowInstance['__proto__'] = Object.prototype;
-          if (!!windowInstance['_$']) {
-            // If we set '__proto__', but '_$' still exists, then setting that
-            // property is not supported on the 'Window' at least, resort to obliteration.
-            delete proto['_$'];
-            windowInstance['__proto__'] = proto;
-            fail();
-          }
-          // If we got to here without any errors being thrown, and without "fail()"
-          // being called, then it seems as though the browser supports __proto__!
-          if (supportsProto !== false) {
-            //console.log("browser supports '__proto__'!!");
-            supportsProto = true;
-          }
-        }
-      } catch(e) {
-        fail();
-      }        
+        windowInstance['constructor'] = windowInstance['Window'] = windowInstance['DOMWindow']=undefined;
+      } catch(e){}
     }
-    try {
-      windowInstance['constructor'] = windowInstance['Window'] = windowInstance['DOMWindow']=undefined;
-    } catch(e){}
 
     // Inside the sandbox scope, use the 'global' property if you MUST get a reference
     // to the sandbox's global scope (in reality, the 'iframe's Window object). This is
