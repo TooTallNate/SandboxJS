@@ -1,10 +1,17 @@
 SandboxJS
 =========
-### Run JavaScript code in a Sandbox for the browser
+### JavaScript "Sandboxes" for the web browser.
 
 This script offers a very simple interface for JavaScript "Sandboxes".
 Underneath, it uses the [magic power of `iframe`s][DeanEdwards] to create
 new execution scopes for JavaScript to be evaluated inside of.
+
+This could potentially be used as the backbone for browser-side:
+
+ * Isolated scope module loading (could implement CommonJS on top of this).
+ * Client-side HTML templates, with access to certain defined variables.
+ * Defining custom JavaScript environments (APIs), then loading external
+   _script_ files that interact with the custom API (abstracting the browser/DOM away).
 
 
 API
@@ -38,7 +45,7 @@ Synchronously loads the JavaScript file `filename` and executes it into the
 sandbox. If there is an error while loading (like the file was not found),
 then this function will throw. This function is highly discouraged, since synchronous network
 activity blocks the browser, making it appear to _freeze_! Also, underneath
-this function uses `XMLHttpRequest`s, which are limited by the [Same Origin Policy][SameOriginPolicy].
+this function uses `XMLHttpRequest`s, which are restricted by the [Same Origin Policy][SameOriginPolicy].
 In other words, this function will ONLY work with files from the SAME DOMAIN.
 
 [DeanEdwards]: http://dean.edwards.name/weblog/2006/11/sandbox/

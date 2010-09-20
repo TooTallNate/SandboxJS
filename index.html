@@ -1,14 +1,53 @@
 <!DOCTYPE HTML>
-<html>
+<html style="width:90%; height:90%;">
   <head>
-    <title>SandboxJS: JavaScript "Sandboxes" for the Browser</title>
+    <title>SandboxJS: JavaScript "Sandboxes" for the web browser</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <script type="text/javascript" src="Sandbox.js"></script>
     <script type="text/javascript">
+      window.onload = function() {
+        // Create a new 'Sandbox' instance.
+        sandbox = new Sandbox();
+        
+        var inputs = document.getElementsByTagName("input");
+        
+      }
       
+      function evalScope(form) {
+        var input = form.getElementsByTagName("input")[0];
+        var value = input.value;
+        var isSandbox = /sandbox/.test(input.id);
+        var logger = isSandbox ? document.getElementById("sandboxLog") : document.getElementById("globalLog");
+        try {
+          if (isSandbox) {
+            logger.innerHTML += ">> " + value + "\n";
+            logger.innerHTML += (new String(sandbox.eval(value))) + "\n";
+          } else {
+            logger.innerHTML += ">> " + value + "\n";
+            logger.innerHTML += (new String(eval(value))) + "\n";
+          }
+        } catch(e) {
+          logger.innerHTML += "ERROR: " + e + "\n";
+        }
+      }
     </script>
   </head>
-  <body>
-    
+  <body style="width:90%; height:90%;">
+    <table style="width:100%; height:100%;">
+      <tbody>
+        <tr>
+          <th>Global Scope</th>
+          <th>Sandbox Scope</th>
+        </tr>
+        <tr>
+          <td><textarea id="globalLog" style="width:100%; height:100%;"></textarea></td>
+          <td><textarea id="sandboxLog" style="width:100%; height:100%;"></textarea></td>
+        </tr>
+        <tr>
+          <td><form action="javascript:void(0);" onsubmit="evalScope(this);"><input type="text" id="globalInput" style="width:100%;" /><input type="submit" value="Eval in Global scope" /></form></td>
+          <td><form action="javascript:void(0);" onsubmit="evalScope(this);"><input type="text" id="sandboxInput" style="width:100%;" /><input type="submit" value="Eval in Sandbox scope" /></form></td>
+        </tr>
+      </tbody>
+    </table>
   </body>
 </html>

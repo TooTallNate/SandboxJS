@@ -1,6 +1,8 @@
 window['Sandbox'] = (function(window, document, undefined) {
 
-  // 
+  // A Boolean flag that, when set, determines whether or not the browser
+  // supports setting the '__proto__' property on the Window object.
+  // Firefox, for example, supports __proto__ on other Objects, but not Window.
   var supportsProto;
   
   
@@ -21,7 +23,7 @@ window['Sandbox'] = (function(window, document, undefined) {
       // Get a 'binded' eval function so we can execute arbitary JS inside the
       // new scope.
       var script = document.createElement("script"),
-        text = "e=function(s){return eval(s);}";
+        text = "e=function(s){return eval('with(window) { ' + s + '}');}";
       script.setAttribute('type', 'text/javascript');
       if (!!script['canHaveChildren']) { 
         script.appendChild(document.createTextNode(text)); 
@@ -64,7 +66,7 @@ window['Sandbox'] = (function(window, document, undefined) {
       // needs to be restricted, which provides access to the page's global
       // scope (very bad!).
       if (supportsProto === true) {
-        windowInstance['__proto__'] = null;
+        windowInstance['__proto__'] = Object.prototype;
       } else if (supportsProto === false) {
         obliterateConstructor.call(this, windowInstance);
       } else {
@@ -83,7 +85,7 @@ window['Sandbox'] = (function(window, document, undefined) {
             if (windowInstance['_$'] !== true) {
               fail();
             }
-            windowInstance['__proto__'] = null;
+            windowInstance['__proto__'] = Object.prototype;
             if (!!windowInstance['_$']) {
               // If we set '__proto__', but '_$' still exists, then setting that
               // property is not supported on the 'Window' at least, resort to obliteration.
@@ -91,6 +93,8 @@ window['Sandbox'] = (function(window, document, undefined) {
               windowInstance['__proto__'] = proto;
               fail();
             }
+            // If we got to here without any errors being thrown, and without "fail()"
+            // being called, then it seems as though the browser supports __proto__!
             if (supportsProto !== false) {
               console.log("browser supports '__proto__'!!");
               supportsProto = true;
@@ -103,6 +107,12 @@ window['Sandbox'] = (function(window, document, undefined) {
       try {
           windowInstance['constructor'] = windowInstance['Window'] = windowInstance['DOMWindow']=undefined;
       } catch(e){}
+      
+      // Inside the sandbox scope, use the 'global' property if you MUST get a reference
+      // to the sandbox's global scope (in reality, the 'iframe's Window object). This is
+      // encouraged over the use of 'window', since that seems impossible to hide in all
+      // browsers.
+      windowInstance['global'] = windowInstance;
   }
 
   function obliterate(proto, prop) {
