@@ -1,0 +1,38 @@
+#!/usr/bin/env node
+
+var http = require('http'),
+    fs = require('fs'),
+    querystring = require('querystring'),
+    path = require('path'),
+    spawn = require('child_process').spawn;
+
+var request = http.createClient(80, 'closure-compiler.appspot.com').request('POST', '/compile', {
+  'Host': 'closure-compiler.appspot.com',
+  'Content-Type': 'application/x-www-form-urlencoded'
+});
+
+request.addListener('response', function (response) {
+  var res = "";
+  response.setEncoding('utf8');
+  response.addListener('data', function (chunk) {
+    res += chunk;
+  });
+  response.addListener('end', function () {
+    var json = JSON.parse(res);
+    var compiledCode = json.compiledCode;
+    delete json.compiledCode;
+    console.log(json);
+        
+    outputFilename = path.join(__dirname, "Sandbox.min.js");
+    console.log('\nSaving compiled code to "'+outputFilename+'"');
+    fs.writeFileSync(outputFilename, compiledCode);
+  });
+});
+
+request.end(querystring.stringify({
+    'compilation_level': 'ADVANCED_OPTIMIZATIONS',
+    'output_format': 'json',
+    'output_info': ['compiled_code', 'warnings', 'errors', 'statistics'],
+    //'formatting': 'pretty_print',
+    'js_code': fs.readFileSync(__dirname + "/Sandbox.js", 'utf8')
+}, '&', '=', false));
