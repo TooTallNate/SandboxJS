@@ -17,9 +17,13 @@ This could potentially be used as the backbone for browser-side:
 API
 ---
 
-    new Sandbox() -> sandbox
+    new Sandbox([bare:Boolean]) -> sandbox
 
-Creates and returns new `Sandbox` instance.
+Creates and returns new `Sandbox` instance. The `bare` parameter
+defaults to _true_, and determines whether or not the sandbox environment
+should attempt to have all it's extraneous browser/DOM objects removed from
+the scope. Setting this to _false_ will keep functions like `alert`, and
+`XMLHttpRequest` available for use inside the sandbox.
 
     sandbox.global -> Global
 
