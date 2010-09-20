@@ -6,19 +6,21 @@ window['Sandbox'] = (function(window, document, undefined) {
   var supportsProto;
   
   
-  function Sandbox() {
+  function Sandbox(bare) {
+    
+    if (bare === false) {
+      throw new Error("NOT YET IMPLEMENTED: Make a GitHub Issue if you need this...");
+    }  
+    
       // Append to document so that 'contentWindow' is accessible
       var iframe = document.createElement("iframe");
       // Make the 'iframe' invisible, so it doesn't affect the HTML layout.
       iframe.style.display = "none";
       document.body.appendChild(iframe);
 
-      // Get a reference to the 'global' scope
-      var windowInstance = iframe['contentWindow']
+      // Get a reference to the 'global' scope, and document instance
+      var windowInstance = iframe['contentWindow'], documentInstance = windowInstance['document'];
       this['global'] = windowInstance;
-
-      // Get a reference to the document
-      var documentInstance = windowInstance['document'];
 
       // Get a 'binded' eval function so we can execute arbitary JS inside the
       // new scope.
@@ -71,7 +73,7 @@ window['Sandbox'] = (function(window, document, undefined) {
         obliterateConstructor.call(this, windowInstance);
       } else {
         function fail() {
-          console.log("browser DOES NOT support '__proto__'");
+          //console.log("browser DOES NOT support '__proto__'");
           supportsProto = false;
           obliterateConstructor.call(this, windowInstance);
         }
@@ -96,7 +98,7 @@ window['Sandbox'] = (function(window, document, undefined) {
             // If we got to here without any errors being thrown, and without "fail()"
             // being called, then it seems as though the browser supports __proto__!
             if (supportsProto !== false) {
-              console.log("browser supports '__proto__'!!");
+              //console.log("browser supports '__proto__'!!");
               supportsProto = true;
             }
           }
@@ -135,7 +137,7 @@ window['Sandbox'] = (function(window, document, undefined) {
   }
 
   function obliterateConstructor(windowInstance) {
-    console.log("attempting to obliterate the constructor's prototype");
+    //console.log("attempting to obliterate the constructor's prototype");
     var windowConstructor = windowInstance['constructor'] || windowInstance['DOMWindow'] || windowInstance['Window'],
       windowProto = windowConstructor ? windowConstructor.prototype : windowConstructor['__proto__'];
     if (windowProto) {
@@ -148,7 +150,7 @@ window['Sandbox'] = (function(window, document, undefined) {
         obliterate(windowProto, i);
       }
     } else {
-      console.log("could not find 'prototype'");
+      //console.log("could not find 'prototype'");
     }
   }
 
