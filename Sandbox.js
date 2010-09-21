@@ -5,7 +5,32 @@ window['Sandbox'] = (function(window, document, undefined) {
   // Firefox, for example, supports __proto__ on other Objects, but not Window.
   var supportsProto;
   
-  var INSTANCE_PROPERTIES = ['constructor','Window','DOMWindow','window','parent','XMLHttpRequest'];
+  // The list of properties that should NOT be removed from the global
+  // window instance, even if the "bare" parameter is set to `true`.
+  var INSTANCE_PROPERTIES_WHITELIST = {
+    "parseInt":undefined, "parseFloat":undefined,
+    "JSON":undefined,
+    "Array":undefined, "Boolean":undefined, "Date":undefined, "Function":undefined, "Number":undefined, "Object":undefined, "RegExp":undefined, "String":undefined,
+    "Error":undefined, "EvalError":undefined, "RangeError":undefined, "ReferenceError":undefined, "SyntaxError":undefined, "TypeError":undefined, "URIError":undefined,
+    "setTimeout":undefined, "clearTimeout":undefined, "setInterval":undefined, "clearInterval":undefined, 
+    "eval":undefined, "execScript":undefined,
+    "undefined":undefined,
+    "escape":undefined, "unescape":undefined,
+    "encodeURI":undefined, "encodeURIComponent":undefined, "decodeURI":undefined, "decodeURIComponent":undefined,
+    "NaN":undefined, "Infinity":undefined, "Math":undefined,
+    "isNaN":undefined, "isFinite":undefined,
+    // Unfortunately, the 'location' property makes the 'iframe' attempt to go
+    // to a new URL if this is set, so we can't touch it. It must stay, and must
+    // not be a variable name used by scripts.
+    "location":undefined
+  };
+  
+  var INSTANCE_PROPERTIES_BLACKLIST = [
+    'constructor',
+    'Window', 'DOMWindow',
+    'XMLHttpRequest'
+  ];
+  
   
   function Sandbox(bare) {
 
@@ -29,12 +54,12 @@ window['Sandbox'] = (function(window, document, undefined) {
     // Get a 'binded' eval function so we can execute arbitary JS inside the
     // new scope.
     var script = document.createElement("script"),
-      text = "e=function(s){return eval('with(window) { ' + s + '}');}";
+      text = "e=function(s){return eval(s);}";
     script.setAttribute('type', 'text/javascript');
-    if (!!script['canHaveChildren']) { 
-      script.appendChild(document.createTextNode(text)); 
-    } else { 
-      script.text = text; 
+    if (!!script['canHaveChildren']) {
+      script.appendChild(document.createTextNode(text));
+    } else {
+      script.text = text;
     }
     var head = documentInstance['getElementsByTagName']("head")[0];
     head.appendChild(script);
@@ -111,10 +136,18 @@ window['Sandbox'] = (function(window, document, undefined) {
         }        
       }
       
-      // Now that the global prototype has been taken care of, remove access
-      // to any instances directly attached to the Window.
-      for (var i=0, l=INSTANCE_PROPERTIES.length; i<l; i++) {
-        obliterate(windowInstance, INSTANCE_PROPERTIES[i]);
+      // Go through all the iterable global properties in the sandboxed scope,
+      // and obliterate them as long as they're not on the whitelist.
+      for (var i in windowInstance) {
+        if (i in INSTANCE_PROPERTIES_WHITELIST) continue;
+        obliterate(windowInstance, i);
+      }
+      
+      // Ensure that anything on the BLACKLIST is gone
+      for (var i=0, l=INSTANCE_PROPERTIES_BLACKLIST.length; i<l; i++) {
+        var prop = INSTANCE_PROPERTIES_BLACKLIST[i];
+        if (prop in INSTANCE_PROPERTIES_WHITELIST) continue;
+        obliterate(windowInstance, prop);
       }
     }
 
