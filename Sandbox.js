@@ -5,6 +5,7 @@ window['Sandbox'] = (function(window, document, undefined) {
   // Firefox, for example, supports __proto__ on other Objects, but not Window.
   var supportsProto;
   
+  var INSTANCE_PROPERTIES = ['constructor','Window','DOMWindow','window','parent','XMLHttpRequest'];
   
   function Sandbox(bare) {
 
@@ -109,9 +110,12 @@ window['Sandbox'] = (function(window, document, undefined) {
           fail();
         }        
       }
-      try {
-        windowInstance['constructor'] = windowInstance['Window'] = windowInstance['DOMWindow']=undefined;
-      } catch(e){}
+      
+      // Now that the global prototype has been taken care of, remove access
+      // to any instances directly attached to the Window.
+      for (var i=0, l=INSTANCE_PROPERTIES.length; i<l; i++) {
+        obliterate(windowInstance, INSTANCE_PROPERTIES[i]);
+      }
     }
 
     // Inside the sandbox scope, use the 'global' property if you MUST get a reference
@@ -121,23 +125,27 @@ window['Sandbox'] = (function(window, document, undefined) {
     windowInstance['global'] = windowInstance;
   }
 
-  function obliterate(proto, prop) {
+  function obliterate(obj, prop) {
     try {
-      proto[prop] = undefined;
-      if (!proto[prop]) return;
+      delete obj[prop];
+      if (!obj[prop]) return;
+    } catch(e){}
+    try {
+      obj[prop] = undefined;
+      if (!obj[prop]) return;
     } catch(e){}
     var value;
-    if ("__defineGetter__" in proto) {
+    if ("__defineGetter__" in obj) {
       try {
-        proto.__defineGetter__(prop, function() {
+        obj.__defineGetter__(prop, function() {
           return value;
         });
-        proto.__defineSetter__(prop, function(v) {
+        obj.__defineSetter__(prop, function(v) {
           value = v;
         });
       } catch(ex) {}
     }
-    proto[prop] = undefined;
+    obj[prop] = undefined;
   }
 
   function obliterateConstructor(windowInstance) {
