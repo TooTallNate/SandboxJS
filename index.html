@@ -8,6 +8,20 @@
       window.onload = function() {
         // Create a new 'Sandbox' instance.
         sandbox = new Sandbox();
+        
+        // A 'print' function is available in the global and
+        // sandbox scope, to print out to the logger <textarea>.
+        sandbox.global.print = function(text) {
+          printInLogger(document.getElementById("sandboxLog"), text);
+        }
+        
+        window.print = function(text) {
+          printInLogger(document.getElementById("globalLog"), text);
+        }
+      }
+      
+      function printInLogger(logger, text) {
+        logger.innerHTML += text + "\n";
       }
       
       function evalScope(form) {
@@ -17,20 +31,29 @@
         var logger = isSandbox ? document.getElementById("sandboxLog") : document.getElementById("globalLog");
         try {
           if (isSandbox) {
-            logger.innerHTML += ">> " + value + "\n";
-            logger.innerHTML += (new String(sandbox.eval(value))) + "\n";
+            printInLogger(logger, ">> " + value);
+            printInLogger(logger, String(sandbox.eval(value)));
           } else {
-            logger.innerHTML += ">> " + value + "\n";
-            logger.innerHTML += (new String(eval(value))) + "\n";
+            printInLogger(logger, ">> " + value);
+            printInLogger(logger, String(eval(value)));
           }
         } catch(e) {
-          logger.innerHTML += "ERROR: " + e + "\n";
+          printInLogger(logger, "ERROR: " + e);
         }
+        input.value = "";
+        input.focus();
       }
     </script>
   </head>
   <body style="width:90%; height:90%;">
     <table style="width:100%; height:100%;">
+      <p>
+        <ul>
+          <li>Enter arbitrary JavaScript into either scope and press the button to "eval" it.</li>
+          <li>The two scopes <i>DO NOT</i> have access to each other's variables.</li>
+          <li>They both have a "print" function defined that prints text to the scope's logger.</li>
+        </ul>
+      </p>
       <tbody>
         <tr>
           <th>Global Scope</th>
