@@ -29,7 +29,7 @@ the scope. Setting this to _false_ will keep functions like `alert`, and
 
 The `global` scope of the sandbox instance. This is a convenient way
 to share instances of `Object`s across scopes, or prepare the sandbox
-environment with properties that scripts can use.
+environment with properties that scripts can use (like a "require()" function).
 
     sandbox.eval(jsStr:String) -> ?
 
@@ -37,7 +37,7 @@ Calls `eval` on the given `String` inside the sandbox. Variables declared
 inside the sandbox won't be accessible globally, and global variables won't
 be visible inside the sandbox. The result of the `eval` is returned.
 
-    sandbox.load(filename:String [, callback:Function])
+    sandbox.load(filename:String [, callback:function(err) {}])
 
 Loads the JavaScript file `filename` and executes it into the sandbox. `callback`
 is an optional function that gets invoked when the file has finished loading and
@@ -51,6 +51,16 @@ then this function will throw. This function is highly discouraged, since synchr
 activity blocks the browser, making it appear to _freeze_! Also, underneath
 this function uses `XMLHttpRequest`s, which are restricted by the [Same Origin Policy][SameOriginPolicy].
 In other words, this function will ONLY work with files from the SAME DOMAIN.
+
+
+What Isn't SandboxJS?
+---------------------
+
+ - `Sandboxes` are _NOT_ seperate threads. All `Sandbox` instances share the same
+   event-loop that the current page uses. As such, never block indefinitely;
+   something like this _WILL_ freeze your browser:
+
+    (new Sandbox()).eval('while(1) {}');
 
 [DeanEdwards]: http://dean.edwards.name/weblog/2006/11/sandbox/
 [SameOriginPolicy]: http://en.wikipedia.org/wiki/Same_origin_policy

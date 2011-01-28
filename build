@@ -3,8 +3,7 @@
 var http = require('http'),
     fs = require('fs'),
     querystring = require('querystring'),
-    path = require('path'),
-    spawn = require('child_process').spawn;
+    path = require('path');
 
 var request = http.createClient(80, 'closure-compiler.appspot.com').request('POST', '/compile', {
   'Host': 'closure-compiler.appspot.com',
