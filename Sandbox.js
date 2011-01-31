@@ -22,7 +22,10 @@ window['Sandbox'] = (function(window, document, undefined) {
     // Unfortunately, the 'location' property makes the 'iframe' attempt to go
     // to a new URL if this is set, so we can't touch it. It must stay, and must
     // not be a variable name used by scripts.
-    "location":undefined
+    "location":undefined,
+    // 'document' is needed for the current "load" implementation.
+    // TODO: Figure out a better way to inject <script> tags into the iframe.
+    "document":undefined
   };
   
   var INSTANCE_PROPERTIES_BLACKLIST = [
@@ -53,35 +56,42 @@ window['Sandbox'] = (function(window, document, undefined) {
 
     // Get a 'binded' eval function so we can execute arbitary JS inside the
     // new scope.
-    var script = document.createElement("script"),
-      text = "e=function(s){return eval(s);}";
-    script.setAttribute('type', 'text/javascript');
-    if (!!script['canHaveChildren']) {
-      script.appendChild(document.createTextNode(text));
-    } else {
-      script.text = text;
+    documentInstance.open();
+    documentInstance.write(
+    "<script>"+
+    "var MSIE/*@cc_on =1@*/;"+ // sniff
+    "_e=MSIE?this:{eval:function(s){return window.eval(s)}}"+
+    "<\/script>");
+    documentInstance.close();
+    var evaler = windowInstance['_e'];
+    this['eval'] = function(s) {
+      return evaler.eval(s);
     }
-    var head = documentInstance['getElementsByTagName']("head")[0];
-    head.appendChild(script);
-    head.removeChild(script);
-    this['eval'] = windowInstance['e'];
-    delete windowInstance['e'];
+    try {
+      delete windowInstance['_e'];
+    } catch(ex) {
+      this.eval('delete _e');
+    }
 
-    // Define the getScript function, which returns a Script instance that
+    // Define the "load" function, which returns a Script instance that
     // will be executed inside the sandboxed 'scope'.
     this['load'] = function(filename, callback) {
-      var str = "_s = document.createElement('script'); "+
-        "_s.setAttribute('type','text/javascript'); "+
-        "_s.setAttribute('src','"+filename.replace(/'/g, "\\'")+"'); ";
+      var str = "_s = document.createElement('script');"+
+        "_s.setAttribute('type','text/javascript');"+
+        "_s.setAttribute('src','"+filename.replace(/'/g, "\\'")+"');";
       if (callback) {
-        function cb() {
-          callback();
+        function cb(e) {
+          if (cb.called) return; // Callback already executed...
+          if (!this.readyState || /complete|loaded/i.test(this.readyState)) {
+            cb.called = true;
+            callback(e);
+          }
         }
         this['eval'](str);
-        windowInstance['_s'].onload = cb;
+        windowInstance['_s'].onload = windowInstance['_s'].onreadystatechange = cb;
         str = "";
       }
-      this['eval'](str + "document.getElementsByTagName('head')[0].appendChild(_s); delete _s;");
+      this['eval'](str + "document.getElementsByTagName('head')[0].appendChild(_s);delete _s;");
     }
 
     // Synchronous load using XHR. This is discouraged.
@@ -178,7 +188,9 @@ window['Sandbox'] = (function(window, document, undefined) {
         });
       } catch(ex) {}
     }
-    obj[prop] = undefined;
+    try {
+      obj[prop] = undefined;
+    } catch(ex) {}
   }
 
   function obliterateConstructor(windowInstance) {
