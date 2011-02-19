@@ -1,4 +1,9 @@
-window['Sandbox'] = (function(window, document, undefined) {
+(function(window, document, undefined) {
+
+  // Helps minimization
+  var True = true;
+  var False = false;
+  var Eval = 'eval';
 
   // A Boolean flag that, when set, determines whether or not the browser
   // supports setting the '__proto__' property on the Window object.
@@ -41,7 +46,7 @@ window['Sandbox'] = (function(window, document, undefined) {
     // be attempted to be cleared out of any extra browser/DOM objects and functions.
     // `true` attempts to make the sandbox as close to a 'bare' JavaScript
     // environment as possible, and `false` leaves things like 'alert' available.
-    bare = bare !== false ? true : false;
+    bare = bare !== False ? True : False;
     this['bare'] = bare;
 
     // Append to document so that 'contentWindow' is accessible
@@ -56,21 +61,21 @@ window['Sandbox'] = (function(window, document, undefined) {
 
     // Get a 'binded' eval function so we can execute arbitary JS inside the
     // new scope.
-    documentInstance.open();
-    documentInstance.write(
-    "<script>"+
-    "var MSIE/*@cc_on =1@*/;"+ // sniff
-    "_e=MSIE?this:{eval:function(s){return window.eval(s)}}"+
-    "<\/script>");
-    documentInstance.close();
+    documentInstance['open']();
+    documentInstance['write'](
+      "<script>"+
+      "var MSIE/*@cc_on =1@*/;"+ // sniff
+      "_e=MSIE?this:{eval:function(s){return window.eval(s)}}"+
+      "<\/script>");
+    documentInstance['close']();
     var evaler = windowInstance['_e'];
-    this['eval'] = function(s) {
-      return evaler.eval(s);
+    this[Eval] = function(s) {
+      return evaler[Eval](s);
     }
     try {
       delete windowInstance['_e'];
     } catch(ex) {
-      this.eval('delete _e');
+      this[Eval]('delete _e');
     }
 
     // Define the "load" function, which returns a Script instance that
@@ -83,15 +88,15 @@ window['Sandbox'] = (function(window, document, undefined) {
         function cb(e) {
           if (cb.called) return; // Callback already executed...
           if (!this.readyState || /complete|loaded/i.test(this.readyState)) {
-            cb.called = true;
+            cb.called = True;
             callback(e);
           }
         }
-        this['eval'](str);
+        this[Eval](str);
         windowInstance['_s'].onload = windowInstance['_s'].onreadystatechange = cb;
         str = "";
       }
-      this['eval'](str + "document.getElementsByTagName('head')[0].appendChild(_s);delete _s;");
+      this[Eval](str + "document.getElementsByTagName('head')[0].appendChild(_s);delete _s;");
     }
 
     // Synchronous load using XHR. This is discouraged.
@@ -106,14 +111,14 @@ window['Sandbox'] = (function(window, document, undefined) {
       // as close to a 'bare' JS environment as possible. Especially 'parent'
       // needs to be restricted, which provides access to the page's global
       // scope (very bad!).
-      if (supportsProto === true) {
+      if (supportsProto === True) {
         windowInstance['__proto__'] = Object.prototype;
-      } else if (supportsProto === false) {
+      } else if (supportsProto === False) {
         obliterateConstructor.call(this, windowInstance);
       } else {
         function fail() {
           //console.log("browser DOES NOT support '__proto__'");
-          supportsProto = false;
+          supportsProto = False;
           obliterateConstructor.call(this, windowInstance);
         }
         try {
@@ -122,8 +127,8 @@ window['Sandbox'] = (function(window, document, undefined) {
           // properties inherited from the 'prototype' a lot easier.
           if (windowInstance['__proto__']) {
             var proto = windowInstance['__proto__'];
-            proto['_$'] = true;
-            if (windowInstance['_$'] !== true) {
+            proto['_$'] = True;
+            if (windowInstance['_$'] !== True) {
               fail();
             }
             windowInstance['__proto__'] = Object.prototype;
@@ -136,9 +141,9 @@ window['Sandbox'] = (function(window, document, undefined) {
             }
             // If we got to here without any errors being thrown, and without "fail()"
             // being called, then it seems as though the browser supports __proto__!
-            if (supportsProto !== false) {
+            if (supportsProto !== False) {
               //console.log("browser supports '__proto__'!!");
-              supportsProto = true;
+              supportsProto = True;
             }
           }
         } catch(e) {
@@ -211,5 +216,7 @@ window['Sandbox'] = (function(window, document, undefined) {
     }
   }
 
-  return Sandbox;
+  // Make visible to the global scope.
+  window['Sandbox'] = Sandbox;
+
 })(window, document)
