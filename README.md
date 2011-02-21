@@ -8,10 +8,11 @@ new execution scopes for JavaScript to be evaluated inside of.
 
 This could potentially be used as the backbone for browser-side:
 
- * Isolated scope module loading (could implement CommonJS on top of this).
+ * Isolated scope module loading (CommonJS could implemented on top of this).
  * Client-side HTML templates, with access to certain defined variables.
  * Defining custom JavaScript environments (APIs), then loading external
    _script_ files that interact with the custom API (abstracting the browser/DOM away).
+
 
 
 API
@@ -53,6 +54,7 @@ this function uses `XMLHttpRequest`s, which are restricted by the [Same Origin P
 In other words, this function will ONLY work with files from the SAME DOMAIN.
 
 
+
 What Isn't SandboxJS?
 ---------------------
 
@@ -61,6 +63,19 @@ What Isn't SandboxJS?
    something like this _WILL_ freeze your browser:
 
     (new Sandbox()).eval('while(1) {}');
+
+
+
+Script Caching
+--------------
+
+The `<iframe>`s used internally seem to be stricter than the host page in
+regards to script caching. It is sometimes necessary to add appropriate `no-cache`
+headers to the HTTP response from your web server to mitigate this problem.
+
+Testing from a `file://` URI doesn't seems to share the same problem (scripts
+are always reloaded from disk as expected).
+
 
 [DeanEdwards]: http://dean.edwards.name/weblog/2006/11/sandbox/
 [SameOriginPolicy]: http://en.wikipedia.org/wiki/Same_origin_policy
