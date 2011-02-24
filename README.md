@@ -65,6 +65,12 @@ What Isn't SandboxJS?
     (new Sandbox()).eval('while(1) {}');
 
 
+ - `Sandboxes` are _NOT_ prisons. Depending on the browser, there may be no way to
+   eliminate access to the global scope. So follow the words of Isaac Schlueter:
+   _Prisons are designed to keep dangerous criminals. Sandboxes are for children to
+   not get lost or hurt while playing. There are several ways to  break out of the
+   sandbox... DON'T!_
+
 
 Script Caching
 --------------
