@@ -40,6 +40,12 @@
   ];
   
   
+  /**
+   * The 'Sandbox' constructor. Accepts a 'bare' parameter, which defaults
+   * to 'true'. If set to true, the sandbox instance is attempted to be stripped
+   * of all additional browser/DOM objects and functions.
+   * @constructor
+   */
   function Sandbox(bare) {
 
     // The 'bare' parameter determines whether or not the sandbox scope should
