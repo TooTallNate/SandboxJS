@@ -53,7 +53,11 @@
     var iframe = document.createElement("iframe");
     // Make the 'iframe' invisible, so it doesn't affect the HTML layout.
     iframe.style.display = "none";
-    document.body.appendChild(iframe);
+
+    // use technique described here http://paulirish.com/2011/surefire-dom-element-insertion/
+    // to allow us to insert before the body tag has been loaded
+    var ref = document.getElementsByTagName('script')[0];
+    ref.parentNode.insertBefore(iframe, ref);
 
     // Get a reference to the 'global' scope, and document instance
     var windowInstance = iframe['contentWindow'], documentInstance = windowInstance['document'];
