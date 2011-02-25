@@ -5,19 +5,17 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <script type="text/javascript" src="Sandbox.min.js"></script>
     <script type="text/javascript">
-      window.onload = function() {
-        // Create a new 'Sandbox' instance.
-        sandbox = new Sandbox();
-        
-        // A 'print' function is available in the global and
-        // sandbox scope, to print out to the logger <textarea>.
-        sandbox.global.print = function(text) {
-          printInLogger(document.getElementById("sandboxLog"), text);
-        }
-        
-        window.print = function(text) {
-          printInLogger(document.getElementById("globalLog"), text);
-        }
+      // Create a new 'Sandbox' instance.
+      sandbox = new Sandbox();
+
+      // A 'print' function is available in the global and
+      // sandbox scope, to print out to the logger <textarea>.
+      sandbox.global.print = function(text) {
+        printInLogger(document.getElementById("sandboxLog"), text);
+      }
+      
+      window.print = function(text) {
+        printInLogger(document.getElementById("globalLog"), text);
       }
       
       function printInLogger(logger, text) {
