@@ -33,7 +33,7 @@
             printInLogger(logger, String(sandbox.eval(value)));
           } else {
             printInLogger(logger, ">> " + value);
-            printInLogger(logger, String(eval(value)));
+            printInLogger(logger, String(window.eval(value)));
           }
         } catch(e) {
           printInLogger(logger, "ERROR: " + e);
