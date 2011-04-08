@@ -174,6 +174,13 @@
         if (prop in INSTANCE_PROPERTIES_WHITELIST) continue;
         obliterate(windowInstance, prop);
       }
+
+      // We might have obliterated some whitelist properties on accident,
+      // copy over the global scope's copies if we did
+      for (var i in INSTANCE_PROPERTIES_WHITELIST) {
+        if (!!windowInstance[i]) continue;
+        windowInstance[i] = window[i];
+      }
     }
 
     // Inside the sandbox scope, use the 'global' property if you MUST get a reference
