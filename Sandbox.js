@@ -121,6 +121,14 @@
       // as close to a 'bare' JS environment as possible. Especially 'parent'
       // needs to be restricted, which provides access to the page's global
       // scope (very bad!).
+
+      // Collect all the 'whitelisted' properties in an obj, we'll use it after
+      // the scope has been cleaned out to ensure they all exist
+      var allowed = {};
+      for (var i in INSTANCE_PROPERTIES_WHITELIST) {
+        allowed[i] = windowInstance[i];
+      }
+
       if (supportsProto === True) {
         windowInstance['__proto__'] = Object.prototype;
       } else if (supportsProto === False) {
@@ -179,8 +187,10 @@
       // copy over the global scope's copies if we did
       for (var i in INSTANCE_PROPERTIES_WHITELIST) {
         if (!!windowInstance[i]) continue;
-        windowInstance[i] = window[i];
+        windowInstance[i] = allowed[i];
       }
+      allowed = null;
+
     }
 
     // Inside the sandbox scope, use the 'global' property if you MUST get a reference
