@@ -1,4 +1,4 @@
-(function(window, document, undefined) {
+;(function(window, document, undefined) {
 
   // Helps minimization
   var True = true;
@@ -246,4 +246,4 @@
   // Make visible to the global scope.
   window['Sandbox'] = Sandbox;
 
-})(window, document)
+})(window, document);
